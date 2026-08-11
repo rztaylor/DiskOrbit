@@ -1,0 +1,131 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  policy:
+    name: Release policy
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba8058255d2fc7ad053ef454303e # v7
+      - name: Validate tag, licence, and release notes
+        shell: bash
+        run: |
+          if ! printf '%s\n' "$GITHUB_REF_NAME" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$'; then
+            echo "Release tags must use vMAJOR.MINOR.PATCH." >&2
+            exit 1
+          fi
+          if [ ! -f LICENSE ]; then
+            echo "Public release blocked: the project owner must add the selected open-source LICENSE." >&2
+            exit 1
+          fi
+          scripts/release-notes.sh "$GITHUB_REF_NAME" >/dev/null
+
+  validate:
+    name: Release validation
+    needs: policy
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba8058255d2fc7ad053ef454303e # v7
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: scripts/check.sh
+      - run: npm --prefix frontend exec playwright install --with-deps chromium
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.cache/ms-playwright
+      - run: npm --prefix frontend run test:e2e
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.cache/ms-playwright
+
+  build:
+    name: Build ${{ matrix.platform }} ${{ matrix.architecture }}
+    needs: validate
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { runner: windows-latest, platform: windows, architecture: amd64, executable: diskorbit.exe }
+          - { runner: windows-11-arm, platform: windows, architecture: arm64, executable: diskorbit.exe }
+          - { runner: macos-15-intel, platform: darwin, architecture: amd64, executable: diskorbit }
+          - { runner: macos-15, platform: darwin, architecture: arm64, executable: diskorbit }
+          - { runner: ubuntu-24.04, platform: linux, architecture: amd64, executable: diskorbit }
+          - { runner: ubuntu-24.04-arm, platform: linux, architecture: arm64, executable: diskorbit }
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba8058255d2fc7ad053ef454303e # v7
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm --prefix frontend ci
+      - run: npm --prefix frontend run build
+      - name: Test native filesystem adapters
+        run: go test ./...
+      - name: Build release executable
+        shell: bash
+        env:
+          TARGET_OS: ${{ matrix.platform }}
+          TARGET_ARCH: ${{ matrix.architecture }}
+          OUTPUT_NAME: ${{ matrix.executable }}
+        run: |
+          mkdir -p out
+          build_date=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          CGO_ENABLED=0 GOOS="$TARGET_OS" GOARCH="$TARGET_ARCH" go build -trimpath \
+            -ldflags "-s -w -X github.com/rztaylor/diskorbit/internal/buildinfo.Version=$GITHUB_REF_NAME -X github.com/rztaylor/diskorbit/internal/buildinfo.Commit=$GITHUB_SHA -X github.com/rztaylor/diskorbit/internal/buildinfo.BuildDate=$build_date" \
+            -o "out/$OUTPUT_NAME" ./cmd/diskorbit
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: binary-${{ matrix.platform }}-${{ matrix.architecture }}
+          path: out/${{ matrix.executable }}
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    name: Publish GitHub release
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba8058255d2fc7ad053ef454303e # v7
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          pattern: binary-*
+          path: release-binaries
+      - name: Package and verify artifacts
+        run: scripts/package-artifacts.sh "$GITHUB_REF_NAME" release-binaries dist
+      - name: Derive release notes
+        run: scripts/release-notes.sh "$GITHUB_REF_NAME" > release-notes.md
+      - name: Refuse release replacement
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            echo "Release $GITHUB_REF_NAME already exists; create a new candidate instead of replacing it." >&2
+            exit 1
+          fi
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" dist/* --verify-tag --title "DiskOrbit $GITHUB_REF_NAME" --notes-file release-notes.md

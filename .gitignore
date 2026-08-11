@@ -1,0 +1,8 @@
+.cache/
+build/
+frontend/node_modules/
+internal/webui/assets/generated/
+
+.DS_Store
+*.log
+
