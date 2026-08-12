@@ -136,6 +136,8 @@ project uses [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- Corrected the pinned GitHub checkout action revision so hosted validation and
+  release jobs can start.
 - Kept Folder Branches colours stable while focusing into directories, with
   related child hues and a focused-centre colour cue instead of an unrelated
   palette reset.
