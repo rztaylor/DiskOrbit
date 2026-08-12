@@ -7,6 +7,6 @@
   or workflow change.
 - Update roadmap, facts, changelog, and release governance in the same change
   when they explain implementation or policy changes.
-- No Git remote is configured yet. Remote setup and repository settings require
-  explicit owner/repository scope before mutation.
-
+- Public repository and `origin`: `https://github.com/rztaylor/DiskOrbit`.
+- The reviewed repository foundation was bootstrapped to `main`; subsequent
+  changes use feature branches and pull requests.

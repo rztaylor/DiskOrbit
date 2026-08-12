@@ -1,6 +1,7 @@
 # Release facts
 
 - Maturity: pre-release, with no compatibility promise before v1.0.0.
+- Licence: MIT; canonical text: `LICENSE`.
 - Versioning: Semantic Versioning; tags use `vMAJOR.MINOR.PATCH`.
 - Changelog: `CHANGELOG.md`; release governance:
   `docs/dev/ops/release-governance.md`.
@@ -16,7 +17,9 @@
   validates policy and a real browser, builds on six native GitHub-hosted
   runners, packages on Ubuntu, verifies checksums, and publishes with the
   workflow token. Ordinary validation requires no credentials.
+- Public GitHub repository and `origin`:
+  `https://github.com/rztaylor/DiskOrbit`.
 - Releases are tag-driven only after all declared checks pass. Failed or partial
   uploads must be corrected with a new candidate rather than silently reused.
-- Decision needed: the project owner must select and add an open-source licence
-  before the first public release. The hosted workflow enforces this blocker.
+- Before the first public release, curate the initial changelog version, run
+  the complete local and real-browser gates, and create its matching tag.

@@ -62,9 +62,10 @@ replacement. DiskOrbit has no persistent schema or migration in the initial
 release, but filesystem interpretation or API compatibility changes still
 belong in release notes.
 
-## Current owner decision
+## Current owner setup
 
-The archive convention is settled. The first public release remains blocked
-until the project owner selects and adds an open-source licence. The hosted
-policy job checks for `LICENSE` before it performs expensive validation or
-publishes anything.
+The archive convention, MIT licence, and public GitHub repository are settled.
+The first public release still requires a dated changelog version and matching
+tag after the complete local and real-browser gates pass. The hosted policy job
+checks for `LICENSE` before it performs expensive validation or publishes
+anything.

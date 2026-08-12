@@ -1,7 +1,7 @@
 # Go facts
 
-- Module: `github.com/rztaylor/diskorbit` unless a future configured remote
-  establishes a different canonical path.
+- Module: `github.com/rztaylor/diskorbit`; repository:
+  `https://github.com/rztaylor/DiskOrbit`.
 - Minimum toolchain: Go 1.26.5, matching the supported Singleserve v0.2 line.
 - Entrypoint: `cmd/diskorbit`.
 - Hand-written implementation lives under `internal/`; no public `pkg/` API is
@@ -11,4 +11,3 @@
   produced before the Go release build.
 - Use the standard library by default and avoid CGO.
 - Validation commands are declared in `.agents/facts/testing.md`.
-

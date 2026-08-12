@@ -1,5 +1,12 @@
 # Decisions
 
+## 2026-08-12 — MIT licence
+
+License DiskOrbit under the MIT License with Robert Taylor as the copyright
+holder. Prefer its short, permissive terms and low redistribution overhead for
+this local desktop application. Closed-source reuse and forks are permitted;
+preserving the copyright and licence notice is the principal condition.
+
 ## 2026-08-07 — React frontend with a narrow dependency surface
 
 Use React and TypeScript built by Vite. React's explicit component/state model
@@ -82,26 +89,30 @@ ring. Pruned or unloaded small descendants therefore retain an outward-facing
 coverage cap without placing hatching beneath visible children. For the focused
 root, the same cap sits immediately outside the centre circle and leaves each
 visible child opening clear.
-Default to six visible rings, allow a session-local 2–8 choice, and retain the
-independent 240-node and fan-out ceilings. Any depth-boundary directory can
-become a new root; the centre navigates to its parent and breadcrumbs jump to
-any ancestor. This preserves the product's visual focus without sending the
-whole tree to the browser.
+The original six-ring, session-local 2–8 depth choice and 240-node ceiling were
+superseded later the same day by the persisted, depth-aware chart preferences
+decision below. The durable decision is that depth and projection work remain
+bounded, any depth-boundary directory can become a new root, the centre
+navigates to its parent, and breadcrumbs jump to any ancestor. This preserves
+the product's visual focus without sending the whole tree to the browser.
 
 ## 2026-08-08 — Card-first local scan launcher
 
 Replace the path field as the primary startup decision with authenticated,
-backend-discovered scan cards. Offer Home and existing conventional user
-folders before deduplicated local and already-mounted network volumes. Selecting
-a card starts immediately using the current size metric. “Another folder” opens
-an authenticated modal navigator that enumerates only direct child directories
-under fixed limits, offers hidden folders through an unchecked option, and
-keeps manual path entry as the recovery route for localised, unusual, truncated,
-or unavailable locations.
-Discovery itself may inspect candidate metadata but must not enumerate
-contents, calculate disk capacity, prompt for permissions, retain history, or
-persist paths in browser storage. The navigator does not mount shares, handle
-network credentials, expose file contents, or mutate the filesystem.
+backend-discovered scan cards. Offer Home, platform-aware standard folders, and
+recognised cloud-sync locations with discoverable content before deduplicated
+local and already-mounted network volumes. Selecting a card starts immediately
+using the current size metric. “Another folder” opens an authenticated modal
+navigator that enumerates only direct child directories under fixed limits,
+offers hidden folders through an unchecked option, and keeps manual path entry
+as the recovery route for localised, unusual, truncated, or unavailable
+locations.
+Discovery may inspect known candidate metadata and perform a bounded,
+non-recursive two-level usefulness probe of names and metadata. It must not read
+file contents, measure size, calculate disk capacity, prompt for permissions,
+retain history, or persist paths in browser storage. The navigator does not
+mount shares, handle network credentials, expose file contents, or mutate the
+filesystem.
 
 ## 2026-08-08 — Capacity-aware free-space wedge
 
@@ -187,8 +198,7 @@ measured rather than reclaimable.
 
 Resolve collected entries from retained scan and node IDs and consolidate
 ancestor/descendant overlap instead of double-counting it. Keep selection,
-native reveal, removal from the list, and clearing the list read-only. Moving
-reviewed items to the operating system Trash or Recycle Bin is a desired future
-direction, but it requires a separate roadmap decision, safety design, and
-native backend boundary; do not treat the Review list as permission to add
-filesystem mutation or permanent deletion.
+native reveal, removal from the list, and clearing the list read-only.
+Filesystem cleanup remains outside DiskOrbit's analysis-only product boundary.
+Do not treat the Review list as permission to add filesystem mutation or
+permanent deletion.

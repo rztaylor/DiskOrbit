@@ -63,10 +63,12 @@ Unknown identity is reported conservatively rather than treated as proof that a
 boundary is absent.
 
 Startup scan choices are hints, not a claim that every root is readable or
-available. DiskOrbit checks the home directory and conventional Desktop,
-Documents, Downloads, Pictures, Music, Videos, and Movies paths, retaining only
-entries that currently exist as directories. This metadata check does not
-enumerate or measure their contents. Volume discovery then adds platform roots:
+available. DiskOrbit checks the home directory, platform-aware standard
+folders, and recognised cloud-sync locations, retaining only directories with
+discoverable content. That usefulness check is a bounded, non-recursive
+two-level probe that enumerates at most 64 immediate entries per directory and
+reads names and metadata only; it never reads file contents or measures size.
+Volume discovery then adds platform roots:
 
 - Windows enumerates logical drive roots and identifies mapped network drives.
 - macOS reads actual mount records for `/` and direct `/Volumes` mounts,

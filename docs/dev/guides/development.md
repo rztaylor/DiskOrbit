@@ -45,8 +45,8 @@ The Node toolchain is required only to compile embedded assets. Running the
 resulting executable requires no Node, Python, Java, browser extension, or
 desktop webview runtime.
 
-Release policy, native target runners, archive naming, and the remaining
-licence blocker are documented in
+Release policy, native target runners, archive naming, and remaining owner
+setup are documented in
 [`../ops/release-governance.md`](../ops/release-governance.md). The release-note
 extractor can be checked without publishing with
 `scripts/release-notes.sh Unreleased`. `scripts/package-artifacts.sh` is a

@@ -1,6 +1,6 @@
 # Bounded scanner
 
-Status: **Completed**
+Status: **Preserved — implemented**
 
 ## Goal
 
@@ -37,7 +37,9 @@ open descriptors, or duplicated full paths.
   and example bounds, links, boundaries, cancellation, concurrency, retention,
   and API validation. Model and scanner benchmarks record allocation baselines.
 
-Allocated-size measurement, volume discovery, and native reveal are now
+## Preserved follow-up context
+
+Allocated-size measurement, volume discovery, and native reveal are
 implemented. Unique hard-link and copy-on-write extent ownership remains
 deferred because current cross-platform metadata cannot support an honest
 deduplicated physical-usage claim.

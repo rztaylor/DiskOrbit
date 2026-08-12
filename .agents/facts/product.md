@@ -13,12 +13,11 @@
 - Supported targets: Windows, macOS, and Linux on amd64 and arm64.
 - Safety boundary: analysis and reveal-in-file-manager only. Delete, trash,
   move, rename, permission changes, repair, and arbitrary execution are out of
-  scope for initial releases.
+  scope.
 - Data boundary: scan data remains authoritative in Go and local to the current
   process. The browser receives bounded, validated views rather than a complete
   filesystem dump.
 - Persistence boundary: only non-sensitive appearance and chart preferences are
   saved in the user's OS configuration directory. Scan roots, results, reports,
   credentials, and browsing history are not persisted.
-- Decision needed: choose the repository's open-source licence before the first
-  public release. No licence text should be inferred from dependencies.
+- Licence: MIT, with Robert Taylor as the copyright holder.

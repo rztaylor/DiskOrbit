@@ -8,6 +8,9 @@ project uses [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Licensed DiskOrbit under the MIT License.
+- Added public contribution, security-reporting, user-workflow, troubleshooting,
+  and automated dependency-update guidance for the GitHub repository.
 - Added the repository foundation, documented ownership boundaries, local
   Singleserve application lifecycle, authenticated status API, and embedded
   React frontend shell.

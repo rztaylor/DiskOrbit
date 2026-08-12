@@ -3,8 +3,6 @@
 DiskOrbit is built in vertical increments that keep the executable runnable
 while the scanner and visualisation mature.
 
-**MAKE THE USER INTERFACE BEAUTIFUL**
-
 ## Active execution sequence
 
 There are no pending implementation items in the initial milestone sequence.
@@ -14,9 +12,19 @@ reporting, and release engineering are implemented. Their durable behavior now
 lives in the architecture, filesystem, development, decision, release, and
 changelog documents.
 
-The first public release is an owner gate rather than an implementation item:
-select and add an open-source `LICENSE`, then curate an initial version section
-in `CHANGELOG.md` before creating its matching tag.
+## First public release readiness
+
+The remaining work is release preparation rather than product implementation:
+
+- `CHANGELOG.md` must receive a dated initial version section before its
+  matching `vMAJOR.MINOR.PATCH` tag is created.
+
+The owner-selected MIT `LICENSE` and public GitHub repository are in place.
+
+After those owner decisions are complete, run the full local and real-browser
+release gates documented in
+[`release governance`](ops/release-governance.md) before tagging. Do not create
+a new implementation milestone merely to track release ceremony.
 
 The [`app-foundation`](roadmap-items/app-foundation.md) brief remains because it
 records the unresolved generic Singleserve drain improvement. The
