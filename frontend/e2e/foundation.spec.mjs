@@ -18,7 +18,7 @@ test("authenticated browser foundation connects and quits cleanly", async ({
 	await writeFile(join(home, "visible-folder", "sample.txt"), "sample");
 	const process = spawn(executable, ["--debug"], {
 		cwd: projectRoot,
-		env: { ...globalThis.process.env, HOME: home, PATH: "/nonexistent" },
+		env: isolatedProcessEnv(home),
 		stdio: ["ignore", "pipe", "pipe"],
 	});
 	let processStderr = "";
@@ -321,7 +321,7 @@ test("starts a local scan and renders progressive directory results", async ({
 	await writeFile(join(fixture, "documents", longInsightName), "x");
 	const process = spawn(executable, ["--debug"], {
 		cwd: projectRoot,
-		env: { ...globalThis.process.env, HOME: fixture, PATH: "/nonexistent" },
+		env: isolatedProcessEnv(fixture),
 		stdio: ["ignore", "pipe", "pipe"],
 	});
 	let processStderr = "";
@@ -918,7 +918,7 @@ test("coordinates the live chart pulse with a consistent active-scan header", as
 	const home = await mkdtemp(join(tmpdir(), "diskorbit-live-home-"));
 	const process = spawn(executable, ["--debug"], {
 		cwd: projectRoot,
-		env: { ...globalThis.process.env, HOME: home, PATH: "/nonexistent" },
+		env: isolatedProcessEnv(home),
 		stdio: ["ignore", "pipe", "pipe"],
 	});
 	let rootFetches = 0;
@@ -1027,14 +1027,14 @@ test("coordinates the live chart pulse with a consistent active-scan header", as
 		const chartValue = page.locator(".radial-centre__value");
 		const valueBeforePulseLands = await chartValue.textContent();
 		await expect
-			.poll(
-				async () =>
+			.poll(async () => {
+				const currentTime =
 					(await pulse.evaluate(
 						(element) => element.getAnimations()[0]?.currentTime,
-					)) ?? 0,
-			)
-			.toBeGreaterThan(220);
-		await expect(chartValue).toHaveText(valueBeforePulseLands ?? "");
+					)) ?? 0;
+				return currentTime > 220 ? chartValue.textContent() : undefined;
+			})
+			.toBe(valueBeforePulseLands);
 		const headerItemHeights = await Promise.all(
 			[".scan-root-context", ".header-coverage"].map(
 				async (selector) =>
@@ -1109,7 +1109,7 @@ test("presents scan errors and bounded warning details in an accessible drawer",
 	const home = await mkdtemp(join(tmpdir(), "diskorbit-issues-home-"));
 	const process = spawn(executable, ["--debug"], {
 		cwd: projectRoot,
-		env: { ...globalThis.process.env, HOME: home, PATH: "/nonexistent" },
+		env: isolatedProcessEnv(home),
 		stdio: ["ignore", "pipe", "pipe"],
 	});
 
@@ -1445,7 +1445,7 @@ test("paginates a directory without loading every child into the browser", async
 	);
 	const process = spawn(executable, ["--debug"], {
 		cwd: projectRoot,
-		env: { ...globalThis.process.env, HOME: fixture, PATH: "/nonexistent" },
+		env: isolatedProcessEnv(fixture),
 		stdio: ["ignore", "pipe", "pipe"],
 	});
 
@@ -1537,6 +1537,15 @@ function waitForBootstrapURL(child) {
 			);
 		});
 	});
+}
+
+function isolatedProcessEnv(home) {
+	return {
+		...globalThis.process.env,
+		HOME: home,
+		XDG_CONFIG_HOME: join(home, ".config"),
+		PATH: "/nonexistent",
+	};
 }
 
 async function expectViewportBoundScanWorkspace(page, viewport) {
