@@ -34,7 +34,7 @@ func TestCommonScanTargetsIncludeOnlyExistingDirectories(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	targets := commonScanTargets(context.Background(), func() (string, error) { return home, nil }, os.Stat, readDirectoryBounded)
+	targets := testCommonScanTargets(context.Background(), func() (string, error) { return home, nil }, os.Stat, readDirectoryBounded)
 	want := []string{
 		home,
 		filepath.Join(home, "Desktop"),
@@ -60,7 +60,7 @@ func TestCommonScanTargetsIncludeOnlyExistingDirectories(t *testing.T) {
 
 func TestCommonScanTargetsTolerateUnavailableHome(t *testing.T) {
 	t.Parallel()
-	targets := commonScanTargets(context.Background(), func() (string, error) {
+	targets := testCommonScanTargets(context.Background(), func() (string, error) {
 		return "", os.ErrNotExist
 	}, os.Stat, readDirectoryBounded)
 	if len(targets) != 0 {
@@ -89,7 +89,7 @@ func TestCommonScanTargetsBoundsAndDeduplicatesCloudFolders(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	targets := commonScanTargets(context.Background(), func() (string, error) { return home, nil }, os.Stat, readDirectoryBounded)
+	targets := testCommonScanTargets(context.Background(), func() (string, error) { return home, nil }, os.Stat, readDirectoryBounded)
 	if len(targets) > 1+maximumStandardTargets+maximumCloudTargets {
 		t.Fatalf("targets = %d, want at most %d: %+v", len(targets), 1+maximumStandardTargets+maximumCloudTargets, targets)
 	}
@@ -120,7 +120,7 @@ func TestCommonScanTargetsOmitsEmptyQuickPlaceFolders(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	targets := commonScanTargets(context.Background(), func() (string, error) { return home, nil }, os.Stat, readDirectoryBounded)
+	targets := testCommonScanTargets(context.Background(), func() (string, error) { return home, nil }, os.Stat, readDirectoryBounded)
 	if len(targets) != 0 {
 		t.Fatalf("folders containing only empty child directories should be omitted: %+v", targets)
 	}
@@ -129,7 +129,7 @@ func TestCommonScanTargetsOmitsEmptyQuickPlaceFolders(t *testing.T) {
 func TestCommonScanTargetsOmitsEmptyHome(t *testing.T) {
 	t.Parallel()
 	home := t.TempDir()
-	targets := commonScanTargets(context.Background(), func() (string, error) { return home, nil }, os.Stat, readDirectoryBounded)
+	targets := testCommonScanTargets(context.Background(), func() (string, error) { return home, nil }, os.Stat, readDirectoryBounded)
 	if len(targets) != 0 {
 		t.Fatalf("empty Home should be omitted: %+v", targets)
 	}
@@ -152,7 +152,7 @@ func TestCommonScanTargetsOmitsProtectedWrapperFolder(t *testing.T) {
 		return readDirectoryBounded(path)
 	}
 
-	targets := commonScanTargets(context.Background(), func() (string, error) { return home, nil }, os.Stat, readDir)
+	targets := testCommonScanTargets(context.Background(), func() (string, error) { return home, nil }, os.Stat, readDir)
 	for _, target := range targets {
 		if target.Name == "Music" {
 			t.Fatalf("protected media wrapper was offered: %+v", targets)
@@ -171,7 +171,7 @@ func TestCommonScanTargetsIgnoresHiddenMetadata(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	targets := commonScanTargets(context.Background(), func() (string, error) { return home, nil }, os.Stat, readDirectoryBounded)
+	targets := testCommonScanTargets(context.Background(), func() (string, error) { return home, nil }, os.Stat, readDirectoryBounded)
 	for _, target := range targets {
 		if target.Name == "Movies" {
 			t.Fatalf("hidden metadata-only folder was offered: %+v", targets)
@@ -229,4 +229,24 @@ func TestVolumeCapacityRejectsOrdinaryFolder(t *testing.T) {
 	if capacity, known := (Host{}).VolumeCapacity(context.Background(), t.TempDir()); known {
 		t.Fatalf("VolumeCapacity() = %+v, true for ordinary folder", capacity)
 	}
+}
+
+func testCommonScanTargets(ctx context.Context, homeDirectory homeDirectory, stat statPath, readDir readDirectory) []ScanTarget {
+	return commonScanTargetsWithCandidates(
+		ctx,
+		homeDirectory,
+		stat,
+		readDir,
+		func(home string) []namedPath { return conventionalFolderCandidates(home, true) },
+		func(ctx context.Context, home string, readDir readDirectory) []namedPath {
+			candidates := []namedPath{
+				{name: "Dropbox", path: filepath.Join(home, "Dropbox")},
+				{name: "Google Drive", path: filepath.Join(home, "Google Drive")},
+				{name: "OneDrive", path: filepath.Join(home, "OneDrive")},
+				{name: "iCloud Drive", path: filepath.Join(home, "iCloud Drive")},
+				{name: "Box", path: filepath.Join(home, "Box")},
+			}
+			return appendCloudChildren(ctx, candidates, home, readDir)
+		},
+	)
 }

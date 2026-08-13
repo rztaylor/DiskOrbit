@@ -174,6 +174,24 @@ func readDirectoryBounded(path string) ([]os.DirEntry, error) {
 }
 
 func commonScanTargets(ctx context.Context, homeDirectory homeDirectory, stat statPath, readDir readDirectory) []ScanTarget {
+	return commonScanTargetsWithCandidates(
+		ctx,
+		homeDirectory,
+		stat,
+		readDir,
+		standardFolderCandidates,
+		cloudFolderCandidates,
+	)
+}
+
+func commonScanTargetsWithCandidates(
+	ctx context.Context,
+	homeDirectory homeDirectory,
+	stat statPath,
+	readDir readDirectory,
+	standardCandidates func(string) []namedPath,
+	cloudCandidates func(context.Context, string, readDirectory) []namedPath,
+) []ScanTarget {
 	home, err := homeDirectory()
 	if err != nil || home == "" {
 		return nil
@@ -201,14 +219,14 @@ func commonScanTargets(ctx context.Context, homeDirectory homeDirectory, stat st
 	}
 
 	appendExisting(namedPath{name: "Home", path: home}, ScanTargetHome)
-	for index, candidate := range standardFolderCandidates(home) {
+	for index, candidate := range standardCandidates(home) {
 		if index >= maximumStandardTargets {
 			break
 		}
 		appendExisting(candidate, ScanTargetFolder)
 	}
 	cloudCount := 0
-	for _, candidate := range cloudFolderCandidates(ctx, home, readDir) {
+	for _, candidate := range cloudCandidates(ctx, home, readDir) {
 		if ctx.Err() != nil {
 			return targets
 		}

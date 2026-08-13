@@ -138,6 +138,8 @@ project uses [Semantic Versioning](https://semver.org/).
 
 - Corrected the pinned GitHub checkout action revision so hosted validation and
   release jobs can start.
+- Made scan-target tests independent of host-specific standard folders and
+  cloud configuration so the cross-platform CI matrix remains deterministic.
 - Kept Folder Branches colours stable while focusing into directories, with
   related child hues and a focused-centre colour cue instead of an unrelated
   palette reset.
