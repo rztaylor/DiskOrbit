@@ -93,7 +93,7 @@ jobs:
           CGO_ENABLED=0 GOOS="$TARGET_OS" GOARCH="$TARGET_ARCH" go build -trimpath \
             -ldflags "-s -w -X github.com/rztaylor/diskorbit/internal/buildinfo.Version=$GITHUB_REF_NAME -X github.com/rztaylor/diskorbit/internal/buildinfo.Commit=$GITHUB_SHA -X github.com/rztaylor/diskorbit/internal/buildinfo.BuildDate=$build_date" \
             -o "out/$OUTPUT_NAME" ./cmd/diskorbit
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: binary-${{ matrix.platform }}-${{ matrix.architecture }}
           path: out/${{ matrix.executable }}
